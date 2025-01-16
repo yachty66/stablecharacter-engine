@@ -16,6 +16,9 @@ should the bot have a standard personality?
 - make bot respond directly in dedicated channel
 - make bot 
 
+- if the user does not have a personality set i want to send him the embedd too
+- if the user has set some personality i want to have him continue the chat with the personality 
+- if the user had more then 10 messages i want him to display a prompt that he should go to the website
 """
 
 # This example requires the 'message_content' intent.
@@ -50,9 +53,21 @@ async def on_message(message):
         return
 
     # Define your designated channel ID (replace with your actual channel ID)
-    DESIGNATED_CHANNEL_ID = 1329310835994136609  # You'll need to get this from Discord
+    DESIGNATED_CHANNEL_ID = 1329310835994136609
 
     try:
+        # Check if user has a personality set
+        if message.author.id not in user_personalities:
+            embed = discord.Embed(
+                title="Choose Your Bot Personality",
+                description="Please select a personality for our interaction:",
+                color=discord.Color.blue()
+            )
+            embed.add_field(name="Available Types", value="🧠 Analyst\n🤝 Diplomat\n⚔️ Sentinel\n🌟 Explorer")
+            view = PersonalityButtons()
+            await message.channel.send(f"Hello {message.author.mention}! Please select a personality first:", embed=embed, view=view)
+            return
+
         # Case 1: In designated channel - respond to everything
         if message.channel.id == DESIGNATED_CHANNEL_ID:
             await message.channel.send('I respond to everything here!')
