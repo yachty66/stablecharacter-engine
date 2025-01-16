@@ -33,6 +33,8 @@ intents.guilds = True
 
 bot = commands.Bot(command_prefix="$", intents=intents)
 
+user_personalities = {}
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
@@ -68,25 +70,60 @@ async def on_message(message):
     except discord.errors.Forbidden:
         print(f"Missing permissions in channel: {message.channel.name}")
 
+class AnalystButtons(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        
+    @discord.ui.button(label="INTJ", style=discord.ButtonStyle.primary)
+    async def intj_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user_personalities[interaction.user.id] = "INTJ"
+        await interaction.response.send_message(
+            "Your personality is now set to INTJ! I will respond as an INTJ personality.", 
+            ephemeral=True
+        )
+        
+    @discord.ui.button(label="INTP", style=discord.ButtonStyle.primary)
+    async def intp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("You selected INTP personality!", ephemeral=True)
+        
+    @discord.ui.button(label="ENTJ", style=discord.ButtonStyle.primary)
+    async def entj_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("You selected ENTJ personality!", ephemeral=True)
+        
+    @discord.ui.button(label="ENTP", style=discord.ButtonStyle.primary)
+    async def entp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("You selected ENTP personality!", ephemeral=True)
+
 class PersonalityButtons(discord.ui.View):
     def __init__(self):
         super().__init__()
         
     @discord.ui.button(label="Analyst", style=discord.ButtonStyle.primary)
     async def analyst_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("You selected Analyst!", ephemeral=True)
+        embed = discord.Embed(
+            title="Choose Your Analyst Type",
+            description="Select your specific personality type:",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="Available Types", value="🤔 INTJ\n🧠 INTP\n👑 ENTJ\n💭 ENTP")
+        
+        view = AnalystButtons()
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="Diplomat", style=discord.ButtonStyle.success)
     async def diplomat_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("You selected Diplomat!", ephemeral=True)
+        # Similar implementation for Diplomat types (INFJ, INFP, ENFJ, ENFP)
+        await interaction.response.send_message("Diplomat types coming soon!", ephemeral=True)
         
     @discord.ui.button(label="Sentinel", style=discord.ButtonStyle.danger)
     async def sentinel_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("You selected Sentinel!", ephemeral=True)
+        # Similar implementation for Sentinel types (ISTJ, ISFJ, ESTJ, ESFJ)
+        await interaction.response.send_message("Sentinel types coming soon!", ephemeral=True)
         
     @discord.ui.button(label="Explorer", style=discord.ButtonStyle.secondary)
     async def explorer_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("You selected Explorer!", ephemeral=True)
+        # Similar implementation for Explorer types (ISTP, ISFP, ESTP, ESFP)
+        await interaction.response.send_message("Explorer types coming soon!", ephemeral=True)
 
 @bot.tree.command(name="menu", description="Open personality selection menu")
 async def menu(interaction: discord.Interaction):
