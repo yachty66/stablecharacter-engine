@@ -21,22 +21,30 @@ should the bot have a standard personality?
 # This example requires the 'message_content' intent.
 import os
 import discord
+from discord import app_commands
+from discord.ext import commands
 from dotenv import load_dotenv
 
 load_dotenv()
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.guilds = True
 
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix="$", intents=intents)
 
-@client.event
+@bot.event
 async def on_ready():
-    print(f'We have logged in as {client.user}')
+    print(f'Logged in as {bot.user}')
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} command(s)")
+    except Exception as e:
+        print(e)
 
-@client.event
+@bot.event
 async def on_message(message):
-    if message.author == client.user:
+    if message.author == bot.user:
         return
 
     # Define your designated channel ID (replace with your actual channel ID)
@@ -50,14 +58,46 @@ async def on_message(message):
         # Case 2: Outside designated channel - only respond if:
         else:
             # 2a: Bot is mentioned
-            if client.user in message.mentions:
+            if bot.user in message.mentions:
                 await message.channel.send('You mentioned me!')
                 
             # 2b: Message is a reply to the bot
-            elif message.reference and message.reference.resolved.author == client.user:
+            elif message.reference and message.reference.resolved.author == bot.user:
                 await message.channel.send('You replied to me!')
 
     except discord.errors.Forbidden:
         print(f"Missing permissions in channel: {message.channel.name}")
 
-client.run(os.getenv('DISCORD_TOKEN'))
+class PersonalityButtons(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        
+    @discord.ui.button(label="Analyst", style=discord.ButtonStyle.primary)
+    async def analyst_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("You selected Analyst!", ephemeral=True)
+        
+    @discord.ui.button(label="Diplomat", style=discord.ButtonStyle.success)
+    async def diplomat_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("You selected Diplomat!", ephemeral=True)
+        
+    @discord.ui.button(label="Sentinel", style=discord.ButtonStyle.danger)
+    async def sentinel_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("You selected Sentinel!", ephemeral=True)
+        
+    @discord.ui.button(label="Explorer", style=discord.ButtonStyle.secondary)
+    async def explorer_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("You selected Explorer!", ephemeral=True)
+
+@bot.tree.command(name="menu", description="Open personality selection menu")
+async def menu(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="Choose Your Bot Personality",
+        description="Select one of the following personalities:",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="Available Types", value="🧠 Analyst\n🤝 Diplomat\n⚔️ Sentinel\n🌟 Explorer")
+    
+    view = PersonalityButtons()
+    await interaction.response.send_message(embed=embed, view=view)
+
+bot.run(os.getenv('DISCORD_TOKEN'))
