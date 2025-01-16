@@ -26,6 +26,7 @@ from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
 from llm import call_llm  # Import your LLM function
+import json
 
 load_dotenv()
 
@@ -37,6 +38,10 @@ bot = commands.Bot(command_prefix="$", intents=intents)
 
 user_personalities = {}
 conversation_history = {}  # Store message history per user
+
+# Load characters at startup
+with open('characters.json', 'r') as f:
+    characters = json.load(f)
 
 @bot.event
 async def on_ready():
@@ -74,9 +79,18 @@ async def on_message(message):
         # Get user's selected personality
         personality = user_personalities[message.author.id]
         personality_type, gender = personality.split('-')
+        
+        # Convert to character key format (e.g., "intj_male")
+        character_key = f"{personality_type.lower()}_{gender.lower()}"
+        if gender.lower() == "m":
+            character_key = f"{personality_type.lower()}_male"
+        elif gender.lower() == "f":
+            character_key = f"{personality_type.lower()}_female"
 
-        # Prepare system message based on personality
-        system_message = {"role": "system", "content": f"You are a {gender.lower()} {personality_type} from the 16 personalities test. Respond accordingly to maintain character consistency."}
+        system_message = {
+            "role": "system", 
+            "content": characters[character_key]["system_prompt"]
+        }
 
         # Add user's new message to history
         conversation_history[message.author.id].append({"role": "user", "content": message.content})
@@ -92,7 +106,7 @@ async def on_message(message):
         )
 
         if should_respond:
-            async with message.channel.typing():  # Show typing indicator
+            async with message.channel.typing():
                 # Get response from LLM
                 response = call_llm(messages=messages)
                 response_content = response.choices[0].message.content

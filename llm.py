@@ -7,6 +7,7 @@ load_dotenv()
 os.environ['GEMINI_API_KEY'] = os.getenv("GEMINI_API_KEY")
 
 def call_llm(model="gemini/gemini-1.5-flash", messages=[], max_tokens=None, temperature=0.7, response_format=None):
+    print("messages: ", messages)
     response = completion(
         model=model, 
         messages=messages,
