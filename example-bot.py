@@ -70,29 +70,218 @@ async def on_message(message):
     except discord.errors.Forbidden:
         print(f"Missing permissions in channel: {message.channel.name}")
 
+class GenderButtons(discord.ui.View):
+    def __init__(self, personality_type: str):
+        super().__init__()
+        self.personality_type = personality_type
+        
+    @discord.ui.button(label="Male", style=discord.ButtonStyle.primary)
+    async def male_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user_personalities[interaction.user.id] = f"{self.personality_type}-M"
+        await interaction.response.send_message(
+            f"You've selected a Male {self.personality_type} personality!", 
+            ephemeral=True
+        )
+        
+    @discord.ui.button(label="Female", style=discord.ButtonStyle.secondary)
+    async def female_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user_personalities[interaction.user.id] = f"{self.personality_type}-F"
+        await interaction.response.send_message(
+            f"You've selected a Female {self.personality_type} personality!", 
+            ephemeral=True
+        )
+
 class AnalystButtons(discord.ui.View):
     def __init__(self):
         super().__init__()
         
     @discord.ui.button(label="INTJ", style=discord.ButtonStyle.primary)
     async def intj_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        user_personalities[interaction.user.id] = "INTJ"
-        await interaction.response.send_message(
-            "Your personality is now set to INTJ! I will respond as an INTJ personality.", 
-            ephemeral=True
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your INTJ personality:",
+            color=discord.Color.blue()
         )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("INTJ")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="INTP", style=discord.ButtonStyle.primary)
     async def intp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("You selected INTP personality!", ephemeral=True)
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your INTP personality:",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("INTP")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ENTJ", style=discord.ButtonStyle.primary)
     async def entj_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("You selected ENTJ personality!", ephemeral=True)
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ENTJ personality:",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ENTJ")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ENTP", style=discord.ButtonStyle.primary)
     async def entp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("You selected ENTP personality!", ephemeral=True)
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ENTP personality:",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ENTP")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+class DiplomatButtons(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        
+    @discord.ui.button(label="INFJ", style=discord.ButtonStyle.success)
+    async def infj_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your INFJ personality:",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("INFJ")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        
+    @discord.ui.button(label="INFP", style=discord.ButtonStyle.success)
+    async def infp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your INFP personality:",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("INFP")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        
+    @discord.ui.button(label="ENFJ", style=discord.ButtonStyle.success)
+    async def enfj_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ENFJ personality:",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ENFJ")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        
+    @discord.ui.button(label="ENFP", style=discord.ButtonStyle.success)
+    async def enfp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ENFP personality:",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ENFP")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+class SentinelButtons(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        
+    @discord.ui.button(label="ISTJ", style=discord.ButtonStyle.danger)
+    async def istj_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ISTJ personality:",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ISTJ")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        
+    @discord.ui.button(label="ISFJ", style=discord.ButtonStyle.danger)
+    async def isfj_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ISFJ personality:",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ISFJ")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        
+    @discord.ui.button(label="ESTJ", style=discord.ButtonStyle.danger)
+    async def estj_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ESTJ personality:",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ESTJ")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        
+    @discord.ui.button(label="ESFJ", style=discord.ButtonStyle.danger)
+    async def esfj_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ESFJ personality:",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ESFJ")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+class ExplorerButtons(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        
+    @discord.ui.button(label="ISTP", style=discord.ButtonStyle.secondary)
+    async def istp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ISTP personality:",
+            color=discord.Color.greyple()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ISTP")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        
+    @discord.ui.button(label="ISFP", style=discord.ButtonStyle.secondary)
+    async def isfp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ISFP personality:",
+            color=discord.Color.greyple()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ISFP")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        
+    @discord.ui.button(label="ESTP", style=discord.ButtonStyle.secondary)
+    async def estp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ESTP personality:",
+            color=discord.Color.greyple()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ESTP")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        
+    @discord.ui.button(label="ESFP", style=discord.ButtonStyle.secondary)
+    async def esfp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Gender",
+            description="Select the gender for your ESFP personality:",
+            color=discord.Color.greyple()
+        )
+        embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        view = GenderButtons("ESFP")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 class PersonalityButtons(discord.ui.View):
     def __init__(self):
@@ -106,24 +295,41 @@ class PersonalityButtons(discord.ui.View):
             color=discord.Color.blue()
         )
         embed.add_field(name="Available Types", value="🤔 INTJ\n🧠 INTP\n👑 ENTJ\n💭 ENTP")
-        
         view = AnalystButtons()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="Diplomat", style=discord.ButtonStyle.success)
     async def diplomat_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Similar implementation for Diplomat types (INFJ, INFP, ENFJ, ENFP)
-        await interaction.response.send_message("Diplomat types coming soon!", ephemeral=True)
+        embed = discord.Embed(
+            title="Choose Your Diplomat Type",
+            description="Select your specific personality type:",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Available Types", value="🤗 INFJ\n🎨 INFP\n👥 ENFJ\n🌟 ENFP")
+        view = DiplomatButtons()
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="Sentinel", style=discord.ButtonStyle.danger)
     async def sentinel_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Similar implementation for Sentinel types (ISTJ, ISFJ, ESTJ, ESFJ)
-        await interaction.response.send_message("Sentinel types coming soon!", ephemeral=True)
+        embed = discord.Embed(
+            title="Choose Your Sentinel Type",
+            description="Select your specific personality type:",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="Available Types", value="📋 ISTJ\n💝 ISFJ\n💼 ESTJ\n🤝 ESFJ")
+        view = SentinelButtons()
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="Explorer", style=discord.ButtonStyle.secondary)
     async def explorer_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Similar implementation for Explorer types (ISTP, ISFP, ESTP, ESFP)
-        await interaction.response.send_message("Explorer types coming soon!", ephemeral=True)
+        embed = discord.Embed(
+            title="Choose Your Explorer Type",
+            description="Select your specific personality type:",
+            color=discord.Color.greyple()
+        )
+        embed.add_field(name="Available Types", value="🔧 ISTP\n🎨 ISFP\n🎯 ESTP\n🎭 ESFP")
+        view = ExplorerButtons()
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 @bot.tree.command(name="menu", description="Open personality selection menu")
 async def menu(interaction: discord.Interaction):
