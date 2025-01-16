@@ -10,23 +10,22 @@ In the embed you can have like 4 buttons- analyst diplomat etc, and upon pressin
 
 I’m guessing the bot’ll have to remember the user’s last selected model and keep it user specific.
 
-
 should the bot have a standard personality?
 
 - make bot respond directly in dedicated channel
 - make bot 
 
-- if the user does not have a personality set i want to send him the embedd too
+- if the user does not have a personality set i want to send him the embedd too - 
 - if the user has set some personality i want to have him continue the chat with the personality 
 - if the user had more then 10 messages i want him to display a prompt that he should go to the website
 """
-
 # This example requires the 'message_content' intent.
 import os
 import discord
 from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
+from llm import call_llm  # Import your LLM function
 
 load_dotenv()
 
@@ -37,6 +36,7 @@ intents.guilds = True
 bot = commands.Bot(command_prefix="$", intents=intents)
 
 user_personalities = {}
+conversation_history = {}  # Store message history per user
 
 @bot.event
 async def on_ready():
@@ -52,7 +52,6 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # Define your designated channel ID (replace with your actual channel ID)
     DESIGNATED_CHANNEL_ID = 1329310835994136609
 
     try:
@@ -68,22 +67,46 @@ async def on_message(message):
             await message.channel.send(f"Hello {message.author.mention}! Please select a personality first:", embed=embed, view=view)
             return
 
-        # Case 1: In designated channel - respond to everything
-        if message.channel.id == DESIGNATED_CHANNEL_ID:
-            await message.channel.send('I respond to everything here!')
-            
-        # Case 2: Outside designated channel - only respond if:
-        else:
-            # 2a: Bot is mentioned
-            if bot.user in message.mentions:
-                await message.channel.send('You mentioned me!')
-                
-            # 2b: Message is a reply to the bot
-            elif message.reference and message.reference.resolved.author == bot.user:
-                await message.channel.send('You replied to me!')
+        # Initialize conversation history for new users
+        if message.author.id not in conversation_history:
+            conversation_history[message.author.id] = []
+
+        # Get user's selected personality
+        personality = user_personalities[message.author.id]
+        personality_type, gender = personality.split('-')
+
+        # Prepare system message based on personality
+        system_message = {"role": "system", "content": f"You are a {gender.lower()} {personality_type} from the 16 personalities test. Respond accordingly to maintain character consistency."}
+
+        # Add user's new message to history
+        conversation_history[message.author.id].append({"role": "user", "content": message.content})
+
+        # Prepare messages for LLM
+        messages = [system_message] + conversation_history[message.author.id][-10:]  # Keep last 10 messages
+
+        # Check if we should respond
+        should_respond = (
+            message.channel.id == DESIGNATED_CHANNEL_ID or
+            bot.user in message.mentions or
+            (message.reference and message.reference.resolved.author == bot.user)
+        )
+
+        if should_respond:
+            async with message.channel.typing():  # Show typing indicator
+                # Get response from LLM
+                response = call_llm(messages=messages)
+                response_content = response.choices[0].message.content
+
+                # Add assistant's response to history
+                conversation_history[message.author.id].append({"role": "assistant", "content": response_content})
+
+                # Send response
+                await message.channel.send(response_content)
 
     except discord.errors.Forbidden:
         print(f"Missing permissions in channel: {message.channel.name}")
+    except Exception as e:
+        print(f"Error processing message: {e}")
 
 class GenderButtons(discord.ui.View):
     def __init__(self, personality_type: str):
@@ -93,6 +116,7 @@ class GenderButtons(discord.ui.View):
     @discord.ui.button(label="Male", style=discord.ButtonStyle.primary)
     async def male_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_personalities[interaction.user.id] = f"{self.personality_type}-M"
+        conversation_history[interaction.user.id] = []  # Initialize empty history
         await interaction.response.send_message(
             f"You've selected a Male {self.personality_type} personality!", 
             ephemeral=True
@@ -101,6 +125,7 @@ class GenderButtons(discord.ui.View):
     @discord.ui.button(label="Female", style=discord.ButtonStyle.secondary)
     async def female_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_personalities[interaction.user.id] = f"{self.personality_type}-F"
+        conversation_history[interaction.user.id] = []  # Initialize empty history
         await interaction.response.send_message(
             f"You've selected a Female {self.personality_type} personality!", 
             ephemeral=True
