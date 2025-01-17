@@ -38,6 +38,7 @@ bot = commands.Bot(command_prefix="$", intents=intents)
 
 user_personalities = {}
 conversation_history = {}  # Store message history per user
+user_total_messages = {}  # Track total messages per user across all personalities
 
 # Load characters at startup
 with open('characters.json', 'r') as f:
@@ -58,8 +59,14 @@ async def on_message(message):
         return
 
     DESIGNATED_CHANNEL_ID = 1329310835994136609
+    WEBSITE_URL = "https://www.stablecharacter.com"
+    MESSAGE_LIMIT = 20  # Total messages allowed before website prompt
 
     try:
+        # Initialize total message count for new users
+        if message.author.id not in user_total_messages:
+            user_total_messages[message.author.id] = 0
+
         # Check if user has a personality set
         if message.author.id not in user_personalities:
             embed = discord.Embed(
@@ -75,6 +82,19 @@ async def on_message(message):
         # Initialize conversation history for new users
         if message.author.id not in conversation_history:
             conversation_history[message.author.id] = []
+
+        # Increment total message count and check limit
+        user_total_messages[message.author.id] += 1
+        if user_total_messages[message.author.id] >= MESSAGE_LIMIT:
+            embed = discord.Embed(
+                title="Continue the Conversation on Our Website!",
+                description=f"Hey {message.author.mention}! You've had {user_total_messages[message.author.id]} total messages with our bots. For an even better experience, continue chatting on our website!",
+                color=discord.Color.gold()
+            )
+            embed.add_field(name="🌟 Visit Us", value=f"[Click here to continue chatting]({WEBSITE_URL})")
+            embed.add_field(name="✨ Benefits", value="• More personality options\n• Unlimited conversations\n• Additional features", inline=False)
+            await message.channel.send(embed=embed)
+            return
 
         # Get user's selected personality
         personality = user_personalities[message.author.id]
@@ -131,6 +151,9 @@ class GenderButtons(discord.ui.View):
     async def male_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_personalities[interaction.user.id] = f"{self.personality_type}-M"
         conversation_history[interaction.user.id] = []  # Initialize empty history
+        # Initialize total message count if not exists
+        if interaction.user.id not in user_total_messages:
+            user_total_messages[interaction.user.id] = 0
         await interaction.response.send_message(
             f"You've selected a Male {self.personality_type} personality!", 
             ephemeral=True
@@ -140,6 +163,9 @@ class GenderButtons(discord.ui.View):
     async def female_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_personalities[interaction.user.id] = f"{self.personality_type}-F"
         conversation_history[interaction.user.id] = []  # Initialize empty history
+        # Initialize total message count if not exists
+        if interaction.user.id not in user_total_messages:
+            user_total_messages[interaction.user.id] = 0
         await interaction.response.send_message(
             f"You've selected a Female {self.personality_type} personality!", 
             ephemeral=True
