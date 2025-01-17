@@ -39,6 +39,7 @@ bot = commands.Bot(command_prefix="$", intents=intents)
 user_personalities = {}
 conversation_history = {}  # Store message history per user
 user_total_messages = {}  # Track total messages per user across all personalities
+guild_channels = {}  # Store channel IDs for each server/guild
 
 # Load characters at startup
 with open('characters.json', 'r') as f:
@@ -58,11 +59,24 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    DESIGNATED_CHANNEL_ID = 1329310835994136609
-    WEBSITE_URL = "https://www.stablecharacter.com"
-    MESSAGE_LIMIT = 2  # Total messages allowed before website prompt
-
     try:
+        # Get the designated channel for this guild
+        designated_channel = guild_channels.get(message.guild.id)
+        
+        # Check if we should respond (in designated channel or when mentioned)
+        should_respond = (
+            (designated_channel and message.channel.id == designated_channel) or
+            bot.user in message.mentions or
+            (message.reference and message.reference.resolved.author == bot.user)
+        )
+
+        if not should_respond:
+            return
+
+        DESIGNATED_CHANNEL_ID = 1329310835994136609
+        WEBSITE_URL = "https://www.stablecharacter.com"
+        MESSAGE_LIMIT = 20  # Total messages allowed before website prompt
+
         # Initialize total message count for new users
         if message.author.id not in user_total_messages:
             user_total_messages[message.author.id] = 0
@@ -109,6 +123,9 @@ async def on_message(message):
         elif gender.lower() == "f":
             character_key = f"{personality_type.lower()}_female"
 
+        # Get character name from characters.json
+        character_name = characters[character_key]["name"]
+
         system_message = {
             "role": "system", 
             "content": characters[character_key]["system_prompt"]
@@ -120,29 +137,21 @@ async def on_message(message):
         # Prepare messages for LLM
         messages = [system_message] + conversation_history[message.author.id][-10:]  # Keep last 10 messages
 
-        # Check if we should respond
-        should_respond = (
-            message.channel.id == DESIGNATED_CHANNEL_ID or
-            bot.user in message.mentions or
-            (message.reference and message.reference.resolved.author == bot.user)
-        )
+        async with message.channel.typing():
+            # Get response from LLM
+            response = call_llm(messages=messages)
+            response_content = response.choices[0].message.content
 
-        if should_respond:
-            async with message.channel.typing():
-                # Get response from LLM
-                response = call_llm(messages=messages)
-                response_content = response.choices[0].message.content
+            # Add assistant's response to history
+            conversation_history[message.author.id].append({"role": "assistant", "content": response_content})
 
-                # Add assistant's response to history
-                conversation_history[message.author.id].append({"role": "assistant", "content": response_content})
-
-                # Send response
-                await message.channel.send(response_content)
+            # Send response
+            await message.channel.send(response_content)
 
     except discord.errors.Forbidden:
         print(f"Missing permissions in channel: {message.channel.name}")
     except Exception as e:
-        print(f"Error processing message: {e}")
+        print(f"Error in message handling: {e}")
 
 class GenderButtons(discord.ui.View):
     def __init__(self, personality_type: str):
@@ -151,25 +160,29 @@ class GenderButtons(discord.ui.View):
         
     @discord.ui.button(label="Male", style=discord.ButtonStyle.primary)
     async def male_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        character_key = f"{self.personality_type.lower()}_male"
+        character_name = characters[character_key]["name"]
         user_personalities[interaction.user.id] = f"{self.personality_type}-M"
         conversation_history[interaction.user.id] = []  # Initialize empty history
         # Initialize total message count if not exists
         if interaction.user.id not in user_total_messages:
             user_total_messages[interaction.user.id] = 0
         await interaction.response.send_message(
-            f"You've selected a Male {self.personality_type} personality!", 
+            f"You've selected a Male {self.personality_type} personality! You'll be chatting with {character_name}!", 
             ephemeral=True
         )
         
     @discord.ui.button(label="Female", style=discord.ButtonStyle.secondary)
     async def female_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        character_key = f"{self.personality_type.lower()}_female"
+        character_name = characters[character_key]["name"]
         user_personalities[interaction.user.id] = f"{self.personality_type}-F"
         conversation_history[interaction.user.id] = []  # Initialize empty history
         # Initialize total message count if not exists
         if interaction.user.id not in user_total_messages:
             user_total_messages[interaction.user.id] = 0
         await interaction.response.send_message(
-            f"You've selected a Female {self.personality_type} personality!", 
+            f"You've selected a Female {self.personality_type} personality! You'll be chatting with {character_name}!", 
             ephemeral=True
         )
 
@@ -369,7 +382,7 @@ class PersonalityButtons(discord.ui.View):
     def __init__(self):
         super().__init__()
         
-    @discord.ui.button(label="Analyst", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Analyst", style=discord.ButtonStyle.danger)
     async def analyst_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         embed = discord.Embed(
             title="Choose Your Analyst Type",
@@ -391,7 +404,7 @@ class PersonalityButtons(discord.ui.View):
         view = DiplomatButtons()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
-    @discord.ui.button(label="Sentinel", style=discord.ButtonStyle.danger)
+    @discord.ui.button(label="Sentinel", style=discord.ButtonStyle.primary)
     async def sentinel_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         embed = discord.Embed(
             title="Choose Your Sentinel Type",
@@ -424,5 +437,18 @@ async def menu(interaction: discord.Interaction):
     
     view = PersonalityButtons()
     await interaction.response.send_message(embed=embed, view=view)
+
+# Add a command to set the bot channel
+@bot.tree.command(name="setchannel", description="Set the current channel as the bot channel")
+@commands.has_permissions(administrator=True)  # Only admins can set the channel
+async def setchannel(interaction: discord.Interaction):
+    guild_id = interaction.guild_id
+    channel_id = interaction.channel_id
+    guild_channels[guild_id] = channel_id
+    
+    await interaction.response.send_message(
+        f"✅ This channel has been set as the bot channel for this server!", 
+        ephemeral=True
+    )
 
 bot.run(os.getenv('DISCORD_TOKEN'))
