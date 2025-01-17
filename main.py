@@ -60,7 +60,7 @@ async def on_message(message):
 
     DESIGNATED_CHANNEL_ID = 1329310835994136609
     WEBSITE_URL = "https://www.stablecharacter.com"
-    MESSAGE_LIMIT = 20  # Total messages allowed before website prompt
+    MESSAGE_LIMIT = 2  # Total messages allowed before website prompt
 
     try:
         # Initialize total message count for new users
@@ -86,10 +86,12 @@ async def on_message(message):
         # Increment total message count and check limit
         user_total_messages[message.author.id] += 1
         if user_total_messages[message.author.id] >= MESSAGE_LIMIT:
+            WEBSITE_URL = "https://www.stablecharacter.com"
             embed = discord.Embed(
                 title="Continue the Conversation on Our Website!",
                 description=f"Hey {message.author.mention}! You've had {user_total_messages[message.author.id]} total messages with our bots. For an even better experience, continue chatting on our website!",
-                color=discord.Color.gold()
+                color=discord.Color.gold(),
+                url=WEBSITE_URL  # This makes the title clickable
             )
             embed.add_field(name="🌟 Visit Us", value=f"[Click here to continue chatting]({WEBSITE_URL})")
             embed.add_field(name="✨ Benefits", value="• More personality options\n• Unlimited conversations\n• Additional features", inline=False)
