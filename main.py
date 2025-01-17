@@ -440,15 +440,31 @@ async def menu(interaction: discord.Interaction):
 
 # Add a command to set the bot channel
 @bot.tree.command(name="setchannel", description="Set the current channel as the bot channel")
-@commands.has_permissions(administrator=True)  # Only admins can set the channel
+@app_commands.checks.has_permissions(administrator=True)  # This is the correct permission check for slash commands
 async def setchannel(interaction: discord.Interaction):
     guild_id = interaction.guild_id
     channel_id = interaction.channel_id
     guild_channels[guild_id] = channel_id
+    # save_guild_channels()
     
     await interaction.response.send_message(
         f"✅ This channel has been set as the bot channel for this server!", 
         ephemeral=True
     )
+
+# Update the error handler to use app_commands
+@setchannel.error
+async def setchannel_error(interaction: discord.Interaction, error):
+    if isinstance(error, app_commands.errors.MissingPermissions):
+        await interaction.response.send_message(
+            "❌ You need administrator permissions to use this command.", 
+            ephemeral=True
+        )
+    else:
+        print(f"Error in setchannel: {error}")
+        await interaction.response.send_message(
+            "❌ An error occurred while setting the channel.", 
+            ephemeral=True
+        )
 
 bot.run(os.getenv('DISCORD_TOKEN'))
