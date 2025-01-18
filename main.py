@@ -45,6 +45,9 @@ guild_channels = {}  # Store channel IDs for each server/guild
 with open('characters.json', 'r') as f:
     characters = json.load(f)
 
+# Add this at the top with other constants
+WEBSITE_URL = "https://www.stablecharacter.com"
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
@@ -73,15 +76,11 @@ async def on_message(message):
         if not should_respond:
             return
 
-        DESIGNATED_CHANNEL_ID = 1329310835994136609
-        WEBSITE_URL = "https://www.stablecharacter.com"
-        MESSAGE_LIMIT = 20  # Total messages allowed before website prompt
-
-        # Initialize total message count for new users
+        # Initialize total message count for new users (we can keep this for tracking)
         if message.author.id not in user_total_messages:
             user_total_messages[message.author.id] = 0
 
-        # Check if user has a personality set
+        # Get user's selected personality
         if message.author.id not in user_personalities:
             embed = discord.Embed(
                 title="Choose Your Bot Personality",
@@ -89,34 +88,23 @@ async def on_message(message):
                 color=discord.Color.blue()
             )
             embed.add_field(name="Available Types", value="🧠 Analyst\n🤝 Diplomat\n⚔️ Sentinel\n🌟 Explorer")
+            embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
             view = PersonalityButtons()
             await message.channel.send(f"Hello {message.author.mention}! Please select a personality first:", embed=embed, view=view)
             return
 
-        # Initialize conversation history for new users
-        if message.author.id not in conversation_history:
-            conversation_history[message.author.id] = []
-
-        # Increment total message count and check limit
+        # Increment message count (optional, for tracking purposes)
         user_total_messages[message.author.id] += 1
-        if user_total_messages[message.author.id] >= MESSAGE_LIMIT:
-            WEBSITE_URL = "https://www.stablecharacter.com"
-            embed = discord.Embed(
-                title="Continue the Conversation on Our Website!",
-                description=f"Hey {message.author.mention}! You've had {user_total_messages[message.author.id]} total messages with our bots. For an even better experience, continue chatting on our website!",
-                color=discord.Color.gold(),
-                url=WEBSITE_URL  # This makes the title clickable
-            )
-            embed.add_field(name="🌟 Visit Us", value=f"[Click here to continue chatting]({WEBSITE_URL})")
-            embed.add_field(name="✨ Benefits", value="• More personality options\n• Unlimited conversations\n• Additional features", inline=False)
-            await message.channel.send(embed=embed)
-            return
 
-        # Get user's selected personality
+        # Rest of your message handling code...
         personality = user_personalities[message.author.id]
         personality_type, gender = personality.split('-')
         
-        # Convert to character key format (e.g., "intj_male")
+        # Convert to character key format
         character_key = f"{personality_type.lower()}_{gender.lower()}"
         if gender.lower() == "m":
             character_key = f"{personality_type.lower()}_male"
@@ -198,7 +186,13 @@ class AnalystButtons(discord.ui.View):
             color=discord.Color.blue()
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         view = GenderButtons("INTJ")
+
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="INTP", style=discord.ButtonStyle.primary)
@@ -210,6 +204,11 @@ class AnalystButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("INTP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ENTJ", style=discord.ButtonStyle.primary)
@@ -221,6 +220,11 @@ class AnalystButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ENTJ")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ENTP", style=discord.ButtonStyle.primary)
@@ -232,6 +236,11 @@ class AnalystButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ENTP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 class DiplomatButtons(discord.ui.View):
@@ -247,6 +256,11 @@ class DiplomatButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("INFJ")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="INFP", style=discord.ButtonStyle.success)
@@ -258,6 +272,11 @@ class DiplomatButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("INFP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ENFJ", style=discord.ButtonStyle.success)
@@ -269,6 +288,11 @@ class DiplomatButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ENFJ")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ENFP", style=discord.ButtonStyle.success)
@@ -280,6 +304,11 @@ class DiplomatButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ENFP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 class SentinelButtons(discord.ui.View):
@@ -295,6 +324,11 @@ class SentinelButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ISTJ")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ISFJ", style=discord.ButtonStyle.danger)
@@ -306,6 +340,11 @@ class SentinelButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ISFJ")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ESTJ", style=discord.ButtonStyle.danger)
@@ -317,6 +356,11 @@ class SentinelButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ESTJ")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ESFJ", style=discord.ButtonStyle.danger)
@@ -328,6 +372,11 @@ class SentinelButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ESFJ")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 class ExplorerButtons(discord.ui.View):
@@ -343,6 +392,11 @@ class ExplorerButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ISTP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ISFP", style=discord.ButtonStyle.secondary)
@@ -354,6 +408,11 @@ class ExplorerButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ISFP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ESTP", style=discord.ButtonStyle.secondary)
@@ -365,6 +424,11 @@ class ExplorerButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ESTP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
     @discord.ui.button(label="ESFP", style=discord.ButtonStyle.secondary)
@@ -376,6 +440,11 @@ class ExplorerButtons(discord.ui.View):
         )
         embed.add_field(name="Available Options", value="👨 Male\n👩 Female")
         view = GenderButtons("ESFP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 class PersonalityButtons(discord.ui.View):
@@ -387,9 +456,14 @@ class PersonalityButtons(discord.ui.View):
         embed = discord.Embed(
             title="Choose Your Analyst Type",
             description="Select your specific personality type:",
-            color=discord.Color.blue()
+            color=discord.Color.red()
         )
         embed.add_field(name="Available Types", value="🤔 INTJ\n🧠 INTP\n👑 ENTJ\n💭 ENTP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         view = AnalystButtons()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
@@ -401,6 +475,11 @@ class PersonalityButtons(discord.ui.View):
             color=discord.Color.green()
         )
         embed.add_field(name="Available Types", value="🤗 INFJ\n🎨 INFP\n👥 ENFJ\n🌟 ENFP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         view = DiplomatButtons()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
@@ -409,9 +488,14 @@ class PersonalityButtons(discord.ui.View):
         embed = discord.Embed(
             title="Choose Your Sentinel Type",
             description="Select your specific personality type:",
-            color=discord.Color.red()
+            color=discord.Color.blue()
         )
         embed.add_field(name="Available Types", value="📋 ISTJ\n💝 ISFJ\n💼 ESTJ\n🤝 ESFJ")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         view = SentinelButtons()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         
@@ -423,6 +507,11 @@ class PersonalityButtons(discord.ui.View):
             color=discord.Color.greyple()
         )
         embed.add_field(name="Available Types", value="🔧 ISTP\n🎨 ISFP\n🎯 ESTP\n🎭 ESFP")
+        embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
         view = ExplorerButtons()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
@@ -434,8 +523,12 @@ async def menu(interaction: discord.Interaction):
         color=discord.Color.blue()
     )
     embed.add_field(name="Available Types", value="🧠 Analyst\n🤝 Diplomat\n⚔️ Sentinel\n🌟 Explorer")
-    
     view = PersonalityButtons()
+    embed.add_field(
+                name="🔥 Want Private Chats?", 
+                value=f"[Visit Stablecharacter for private chats and more]({WEBSITE_URL})", 
+                inline=False
+            )
     await interaction.response.send_message(embed=embed, view=view)
 
 # Add a command to set the bot channel
